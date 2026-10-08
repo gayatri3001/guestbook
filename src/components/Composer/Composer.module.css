@@ -1,0 +1,405 @@
+.dialog {
+  width: min(600px, calc(100vw - 32px));
+  max-width: none;
+  max-height: calc(100dvh - 32px);
+  padding: 0;
+  border: 0;
+  border-radius: 20px;
+  background: var(--dialog-bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  box-shadow:
+    0 2px 6px rgb(var(--shadow-color) / 0.08),
+    0 24px 60px rgb(var(--shadow-color) / 0.18);
+  overflow: hidden;
+}
+
+.dialog[open] {
+  display: flex;
+  animation: rise var(--motion-base) var(--ease-out-soft);
+}
+
+.dialog::backdrop {
+  background: rgb(17 16 17 / 0.32);
+  backdrop-filter: blur(2px);
+}
+
+.form {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 20px 12px 28px;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: 32px;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.close {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.close:hover {
+  background: rgb(var(--shadow-color) / 0.06);
+}
+
+.close svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  padding: 8px 28px 24px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.footer {
+  display: flex;
+  padding: 14px 20px 20px;
+  border-top: 1px solid rgb(var(--shadow-color) / 0.07);
+}
+
+.submit {
+  width: 100%;
+}
+
+.section,
+.fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+/* Section headings: Bricolage, regular weight. */
+.label {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-heading);
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--text);
+  outline: none;
+}
+
+.fieldset .label {
+  margin-bottom: 10px;
+}
+
+/* Bracketed helper text beside a heading. */
+.hint {
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1;
+  color: var(--text-hint);
+}
+
+.labelGroup {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+
+.labelRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.counter {
+  flex: none;
+  font-size: 14px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.counter[data-over] {
+  color: #b3261e;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Surface picker: bare shapes, a divider before the Polaroid. */
+.surfaces {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 40px;
+}
+
+.surfaceGroup {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.surfaceDivider {
+  width: 1px;
+  height: 36px;
+  background: var(--line);
+}
+
+.surfaceOption {
+  position: relative;
+  display: flex;
+  cursor: pointer;
+}
+
+.radio {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.surfaceArt {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  transition:
+    transform var(--motion-base) var(--ease-spring),
+    opacity var(--motion-fast) linear;
+}
+
+.surfaceArt svg {
+  transition: fill var(--motion-fast);
+}
+
+/* The others fade back… */
+.radio:not(:checked) + .surfaceArt {
+  opacity: 0.5;
+}
+
+/* …hovering one tilts it… */
+.surfaceOption:hover .surfaceArt {
+  opacity: 1;
+  transform: rotate(-10deg);
+}
+
+/* …and the chosen one is bigger, darker (fill set inline) and tilted. */
+.radio:checked + .surfaceArt {
+  opacity: 1;
+  transform: scale(1.18) rotate(-10deg);
+}
+
+.radio:focus-visible + .surfaceArt {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 6px;
+  border-radius: 6px;
+}
+
+.tooltip {
+  position: absolute;
+  top: 50%;
+  left: calc(100% + 16px);
+  z-index: 1;
+  width: 210px;
+  padding: 7px 11px;
+  border-radius: 8px;
+  background: var(--text);
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 1.35;
+  opacity: 0;
+  transform: translate(-4px, -50%);
+  transition:
+    opacity var(--motion-fast) linear,
+    transform var(--motion-fast) var(--ease-out-soft);
+  pointer-events: none;
+}
+
+.tooltip::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -4px;
+  width: 8px;
+  height: 8px;
+  margin-top: -4px;
+  background: inherit;
+  transform: rotate(45deg);
+}
+
+.surfaceOption:hover .tooltip,
+.surfaceOption:has(.radio:focus-visible) .tooltip {
+  opacity: 1;
+  transform: translate(0, -50%);
+}
+
+.miniPolaroid {
+  display: flex;
+  width: 38px;
+  height: 46px;
+  box-sizing: border-box;
+  padding: 2px 2px 10px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgb(var(--shadow-color) / 0.15);
+}
+
+.miniPolaroid::before {
+  content: '';
+  flex: 1;
+  border-radius: 1px;
+  background: var(--surface-icon-photo);
+  transition: background var(--motion-fast);
+}
+
+.radio:checked + .surfaceArt .miniPolaroid::before {
+  background: var(--surface-icon-photo-selected);
+}
+
+/* White card holding the drawing tools / photo picker. */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-field);
+  background: #fff;
+}
+
+/* Polaroid tabs: a light-grey strip flush with the card's top and sides. */
+.tabs {
+  display: flex;
+  margin: -16px -16px 0;
+  overflow: hidden;
+  border-radius: calc(var(--radius-field) - 1px) calc(var(--radius-field) - 1px) 0 0;
+  background: var(--doodle-pad);
+}
+
+.tabPanel {
+  min-width: 0;
+}
+
+/* Text fields */
+.textarea,
+.input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-field);
+  background: #fff;
+  color: var(--ink);
+  outline: none;
+}
+
+.textarea {
+  min-height: 92px;
+  resize: vertical;
+  font-family: var(--font-hand);
+  font-size: calc(24px * var(--hand-scale));
+  line-height: 0.95;
+}
+
+.input {
+  font-family: var(--font-body);
+  font-size: 16px;
+}
+
+.textarea:focus-visible,
+.input:focus-visible {
+  border-color: var(--focus-ring);
+  box-shadow: 0 0 0 3px rgb(47 95 208 / 0.18);
+}
+
+.textarea[aria-invalid],
+.input[aria-invalid] {
+  border-color: #b3261e;
+}
+
+.error {
+  margin: 0;
+  font-size: 14px;
+  color: #b3261e;
+}
+
+@media (max-width: 560px) {
+  .dialog {
+    width: 100vw;
+    height: 100dvh;
+    max-height: none;
+    border-radius: 0;
+  }
+
+  .header {
+    padding: 14px 12px 8px 20px;
+  }
+
+  .body {
+    padding: 8px 20px 20px;
+  }
+
+  .surfaces,
+  .surfaceGroup {
+    gap: 20px;
+  }
+
+  .tooltip,
+  .surfaceOption:hover .tooltip,
+  .surfaceOption:has(.radio:focus-visible) .tooltip {
+    top: calc(100% + 12px);
+    right: -8px;
+    left: auto;
+    transform: none;
+  }
+
+  .tooltip::before {
+    top: -4px;
+    right: 24px;
+    left: auto;
+    margin-top: 0;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}

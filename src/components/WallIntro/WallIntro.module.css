@@ -1,0 +1,37 @@
+/* Type scale matches the portfolio hero, in wall units. */
+.intro {
+  position: absolute;
+  /* left/top (set inline) mark the intro's centre. */
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-heading);
+  /* "Leave your mark" is ~6.8em wide; shrink rather than overflow on phones. */
+  font-size: min(80px, calc(var(--intro-fit) / 7.2));
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--text);
+}
+
+.body {
+  max-width: min(620px, var(--intro-fit));
+  margin: 24px 0 0;
+  font-family: var(--font-body);
+  font-size: 21px;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+  color: var(--text-muted);
+}
+
+.cta {
+  margin-top: 36px;
+}

@@ -1,0 +1,59 @@
+.wall {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.viewport {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  /* Vertical scrolling only: the wall scales to the width, or folds into strips. */
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgb(var(--shadow-color) / 0.25) transparent;
+
+  /* Pin-board: a light dotted grid that scrolls with the wall. */
+  background-color: var(--wall-base);
+  background-image: radial-gradient(circle, var(--wall-dot) 1px, transparent 1.5px);
+  background-size: var(--wall-dot-spacing) var(--wall-dot-spacing);
+  background-attachment: local;
+}
+
+/* Reserves the scaled wall's real size so native scrolling works; centred across, pinned to the top. */
+.sizer {
+  position: relative;
+  flex: none;
+  margin: 0 auto;
+}
+
+.surface {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: scale(var(--wall-scale));
+  transform-origin: 0 0;
+}
+
+.entries {
+  margin: 0;
+  padding: 0;
+}
+
+/* With a note in hand, the wall is just a surface: no hovering or clicking existing notes. */
+.viewport[data-mode='placing'],
+.viewport[data-mode='saving'] {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.viewport[data-mode='placing'] .entries,
+.viewport[data-mode='saving'] .entries,
+.viewport[data-mode='placing'] header,
+.viewport[data-mode='saving'] header {
+  pointer-events: none;
+}

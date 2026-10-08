@@ -1,0 +1,71 @@
+.note {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.paper {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.content {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  font-family: var(--font-hand);
+  color: var(--ink);
+  text-align: center;
+}
+
+.doodle {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* With a doodle, the writing sits at the bottom of the writing area. */
+.content[data-with-doodle] {
+  justify-content: flex-end;
+}
+
+.message {
+  margin: 0;
+  /* Room for the script's tall ascenders/descenders inside the clipped box. */
+  padding: 0.14em 0;
+  font-size: calc(var(--message-size) * var(--hand-scale));
+  font-weight: 400;
+  line-height: var(--hand-line-height);
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 10;
+  line-clamp: 10;
+  overflow: hidden;
+}
+
+.message[data-with-doodle] {
+  flex: none;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.signature {
+  flex: none;
+  align-self: flex-end;
+  margin-top: 4px;
+  font-size: calc(15px * var(--hand-scale));
+  line-height: 0.9;
+  color: var(--ink-soft);
+}
+
+.note:not([data-shape='square']) .signature {
+  align-self: center;
+}

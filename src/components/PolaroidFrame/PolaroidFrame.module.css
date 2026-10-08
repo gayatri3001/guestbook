@@ -1,0 +1,11 @@
+/* Framer "Polaroid new" Variant 3 proportions, sized for the composer. */
+.frame {
+  flex: none;
+  width: 200px;
+  max-width: 100%;
+  padding: 11px 11px 36px;
+  background: var(--polaroid-frame) url('../../assets/textures/polaroid-paper.png') center / 100% 100%;
+  box-shadow:
+    var(--polaroid-shadow),
+    0 1px 3px rgb(var(--shadow-color) / 0.12);
+}

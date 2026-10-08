@@ -1,0 +1,96 @@
+/* Design tokens. Components reference these rather than raw values. */
+:root {
+  /* Typography */
+  --font-heading: 'Bricolage Grotesque', var(--font-body);
+  --font-body: 'Manrope', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-hand: 'Square Peg', 'Segoe Print', 'Bradley Hand', cursive;
+  /* Square Peg is small and narrow for its size; this brings it up to a
+     comfortable reading size while keeping roughly the same characters per line. */
+  --hand-scale: 1.35;
+  --hand-line-height: 0.82;
+
+  /* Page (sampled from the portfolio site) */
+  --wall-base: #f4f2f0;
+  --wall-dot: rgb(16 15 16 / 0.13);
+  --wall-dot-spacing: 22px;
+  --text: #111011;
+  --text-muted: #5c5a59;
+  --accent: #c28951;
+
+  /* Composer (from the Claude Design pass) */
+  --dialog-bg: #f9f7f6;
+  --text-hint: #73727a;
+  --line: #c5c5c5;
+  --line-soft: rgb(197 197 197 / 0.5);
+  --radius-field: 8px;
+  --surface-icon: #f8dfae;
+  --surface-icon-selected: #ebbd74;
+  --surface-icon-photo: #e2cfa8;
+  --surface-icon-photo-selected: #c39a72;
+  --doodle-pad: #f3f2ef;
+  --doodle-pad-hover: #ece3c8;
+
+  /* Ink for handwriting on notes */
+  --ink: #2b2a33;
+  --ink-soft: #55525e;
+
+  /* Sticky paper: warm, rich tones rather than stock sticky-note pastels */
+  --paper-yellow: #f3c95e; /* marigold */
+  --paper-pink: #eca293; /* coral rose */
+  --paper-blue: #a7c3cc; /* dusty blue */
+  --paper-green: #b9ca8c; /* sage */
+  --paper-orange: #f1a766; /* apricot */
+
+  /* Polaroid (Framer "Polaroid new" / Variant 3) */
+  --polaroid-frame: #f8f8f6;
+  --polaroid-well: #f2eee4;
+  --polaroid-caption: rgb(148 161 170);
+  --polaroid-shadow:
+    0.12px 0.3px 0.32px -1.25px rgb(16 15 16 / 0.07),
+    0.46px 1.14px 1.23px -2.5px rgb(16 15 16 / 0.06),
+    2px 5px 5.39px -3.75px rgb(16 15 16 / 0.03);
+
+  /* Attachments */
+  --washi-1: #e9a8a0;
+  --washi-2: #9fc5c0;
+  --washi-3: #e8cf86;
+  --washi-4: #b7a8d6;
+  --pin: #48484a;
+  --pin-light: #5c5c5e;
+  --tape-clear: rgb(255 255 255 / 0.6);
+
+  /* Shadows: kept soft to match the site's flat look; light from the top-left */
+  --shadow-color: 16 15 16;
+  --shadow-rest: drop-shadow(0 0.5px 0.6px rgb(var(--shadow-color) / 0.12))
+    drop-shadow(1px 3px 4px rgb(var(--shadow-color) / 0.07));
+  --shadow-flush: drop-shadow(0 0.5px 0.6px rgb(var(--shadow-color) / 0.12));
+  --shadow-lifted: drop-shadow(0 1px 1px rgb(var(--shadow-color) / 0.1))
+    drop-shadow(3px 12px 16px rgb(var(--shadow-color) / 0.14));
+  --shadow-pressed: drop-shadow(0 0.5px 0.6px rgb(var(--shadow-color) / 0.16))
+    drop-shadow(0 1px 2px rgb(var(--shadow-color) / 0.08));
+
+  /* Button (Framer "Button New 2" / Fill landing) */
+  --button-fill: rgb(2 2 2);
+  --button-fill-hover: linear-gradient(100deg, rgb(110 106 96) 4%, rgb(77 72 64) 19%, rgb(2 2 2) 96%);
+
+  /* Motion */
+  --motion-fast: 140ms;
+  --motion-base: 240ms;
+  --motion-settle: 520ms;
+  --motion-snap: 280ms;
+  --ease-out-soft: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+  --ease-framer: cubic-bezier(0.44, 0, 0.56, 1);
+
+  /* Focus */
+  --focus-ring: #2f5fd0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-fast: 0ms;
+    --motion-base: 0ms;
+    --motion-settle: 0ms;
+    --motion-snap: 0ms;
+  }
+}

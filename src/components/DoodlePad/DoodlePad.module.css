@@ -1,0 +1,174 @@
+/* Tools on the left, drawing surface on the right; stacks on narrow screens. */
+/* Tools on the left spanning the pad's full height, drawing surface on the right. */
+.pad {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.swatches {
+  display: grid;
+  grid-template-columns: repeat(3, 20px);
+  justify-content: space-between;
+  row-gap: 10px;
+  width: 140px;
+  padding: 0 8px;
+  box-sizing: border-box;
+}
+
+.swatch {
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgb(var(--shadow-color) / 0.15);
+  cursor: pointer;
+}
+
+.swatch[aria-pressed='true'] {
+  box-shadow: 0 0 0 2px var(--swatch);
+}
+
+.swatch:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.tools {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.toolRow {
+  display: flex;
+  gap: 16px;
+}
+
+.divider {
+  width: 140px;
+  height: 1px;
+  background: var(--line);
+}
+
+.tool {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.tool svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.tool:hover:not(:disabled) {
+  background: rgb(var(--shadow-color) / 0.05);
+}
+
+.tool[aria-pressed='true'] {
+  border-color: rgb(var(--shadow-color) / 0.12);
+  background: #fff;
+  box-shadow: 0 1px 2px rgb(var(--shadow-color) / 0.08);
+}
+
+.tool:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.tool:focus-visible,
+.swatch:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.surface {
+  position: relative;
+  flex: none;
+  align-self: center;
+  width: 220px;
+  max-width: 100%;
+  aspect-ratio: 1;
+  touch-action: none;
+  cursor: crosshair;
+}
+
+/* A Polaroid: draw on the print inside its frame. */
+.polaroid {
+  align-self: center;
+}
+
+.surface[data-shape='print'] {
+  width: 100%;
+  background: var(--doodle-pad);
+  box-shadow: inset 0 0 0 1px rgb(var(--shadow-color) / 0.06);
+}
+
+/* A sticky's pad takes its shape (square, apple or clover), kept neutral. */
+.silhouette {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: var(--doodle-pad);
+  filter: drop-shadow(0 0 0.5px rgb(var(--shadow-color) / 0.25)) drop-shadow(0 1px 2px rgb(var(--shadow-color) / 0.08));
+  pointer-events: none;
+}
+
+.drawing {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.hint {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-hand);
+  font-size: calc(20px * var(--hand-scale));
+  line-height: var(--hand-line-height);
+  text-align: center;
+  color: rgb(var(--shadow-color) / 0.32);
+  pointer-events: none;
+}
+
+/* Phones: tools sit side by side above a centred pad. */
+@media (max-width: 560px) {
+  .pad {
+    justify-content: center;
+  }
+
+  .controls {
+    flex-direction: row;
+    width: 100%;
+    justify-content: space-around;
+  }
+}

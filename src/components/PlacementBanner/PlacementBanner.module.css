@@ -1,0 +1,55 @@
+.banner {
+  position: absolute;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  left: 50%;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  max-width: calc(100% - 32px);
+  padding: 8px 8px 8px 22px;
+  transform: translateX(-50%);
+  border-radius: 36px;
+  background: rgb(255 255 255 / 0.92);
+  box-shadow:
+    0 1px 2px rgb(var(--shadow-color) / 0.08),
+    0 8px 24px rgb(var(--shadow-color) / 0.1);
+  backdrop-filter: blur(8px);
+  font-family: var(--font-body);
+  animation: drop-in var(--motion-base) var(--ease-out-soft);
+}
+
+.banner:not(:has(button)) {
+  padding-right: 22px;
+}
+
+.banner[data-tone='warn'] {
+  box-shadow:
+    0 0 0 1.5px var(--accent),
+    0 8px 24px rgb(var(--shadow-color) / 0.1);
+}
+
+.message {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.4;
+  color: var(--text);
+}
+
+@media (max-width: 480px) {
+  .banner {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding: 12px 12px 10px;
+    border-radius: 20px;
+    text-align: center;
+  }
+}
+
+@keyframes drop-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 8px);
+  }
+}

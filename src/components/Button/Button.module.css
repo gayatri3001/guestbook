@@ -1,0 +1,132 @@
+/* Framer "Button New 2": "Fill landing" by default, "Line landing" via data-variant. */
+.button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px 12px 16px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 36px;
+  background: var(--button-fill);
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+  isolation: isolate;
+}
+
+/* The hover gradient fades in on a layer, since gradients can't transition directly. */
+.button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--button-fill-hover);
+  opacity: 0;
+  transition: opacity 0.4s var(--ease-framer);
+}
+
+.button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.button:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 3px;
+}
+
+.dotSlot {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+}
+
+.dot {
+  position: relative;
+  width: 12px;
+  height: 12px;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--accent);
+  transition:
+    width 0.3s var(--ease-framer),
+    height 0.3s var(--ease-framer);
+}
+
+.arrow {
+  position: absolute;
+  top: calc(50% - 8px);
+  left: -36px;
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: rgb(5 5 5);
+  stroke-width: 1.33;
+  transition: left 0.3s var(--ease-framer);
+}
+
+.label {
+  font-family: var(--font-body);
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+@media (hover: hover) {
+  .button:hover:not(:disabled)::before {
+    opacity: 1;
+  }
+
+  .button:hover:not(:disabled) .dot {
+    width: 28px;
+    height: 28px;
+  }
+
+  .button:hover:not(:disabled) .arrow {
+    left: calc(50% - 8px);
+  }
+}
+
+.button:focus-visible::before {
+  opacity: 1;
+}
+
+.button:focus-visible .dot {
+  width: 28px;
+  height: 28px;
+}
+
+.button:focus-visible .arrow {
+  left: calc(50% - 8px);
+}
+
+/* "Line landing": accent outline, no fill, smaller dark label. */
+.button[data-variant='line'] {
+  padding: 8px 16px 8px 12px;
+  border: 2px solid var(--accent);
+  background: rgb(236 235 228 / 0.01);
+  color: var(--text);
+}
+
+.button[data-variant='line']::before {
+  display: none;
+}
+
+.button[data-variant='line'] .label {
+  font-size: 16px;
+  letter-spacing: -0.01em;
+  line-height: 1.4;
+}
+
+@media (max-width: 1199px) {
+  .button[data-variant='line'] .label {
+    font-size: 14px;
+  }
+}
