@@ -100,12 +100,16 @@ export function usePlacementDrag({
 
   const isPlacing = entry !== null;
   const entryId = entry?.id ?? null;
+  // The note a starting spot was last chosen for. A note handed back after a
+  // failed save keeps its place (and its error message) instead of re-centring.
+  const startedFor = useRef<string | null>(null);
 
   // A newly picked-up note starts at the free spot nearest the middle of the view.
   useEffect(() => {
     const viewport = viewportRef.current;
     const current = entryRef.current;
-    if (!entryId || !viewport || !current) return;
+    if (!entryId || !viewport || !current || startedFor.current === entryId) return;
+    startedFor.current = entryId;
     const rect = viewport.getBoundingClientRect();
     const centre = toWall(rect.left + rect.width / 2, rect.top + rect.height / 2);
     // Look only on screen, keeping the bottom clear of the toast.

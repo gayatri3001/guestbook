@@ -1,10 +1,10 @@
 import type { GuestbookEntry } from '../domain/guestbook';
 import type { GuestbookRepository } from './guestbookRepository';
-import { MOCK_ENTRIES } from './mock/mockEntries';
+import { MOCK_ENTRIES, MOCK_VIEWER_ID } from './mock/mockEntries';
 
 /**
- * In-memory repository backed by deterministic mock data. New entries and
- * photos last until the page reloads.
+ * In-memory repository backed by deterministic mock data, for working
+ * offline. New entries and photos last until the page reloads.
  */
 export function createMockGuestbookRepository(): GuestbookRepository {
   const entries: GuestbookEntry[] = structuredClone(MOCK_ENTRIES);
@@ -14,12 +14,22 @@ export function createMockGuestbookRepository(): GuestbookRepository {
       // Hand out copies so callers can't mutate the store.
       return structuredClone(entries);
     },
-    async createEntry(entry) {
-      entries.push(structuredClone(entry));
-      return structuredClone(entry);
+    async hasVisitor() {
+      return true;
     },
-    async uploadPhoto(photo) {
-      return URL.createObjectURL(photo);
+    async ensureVisitor() {
+      return MOCK_VIEWER_ID;
+    },
+    async createEntry(entry, photo) {
+      let saved = entry;
+      if (photo && entry.type === 'polaroid' && entry.media.kind === 'photo') {
+        saved = { ...entry, media: { ...entry.media, imageUrl: URL.createObjectURL(photo) } };
+      }
+      entries.push(structuredClone(saved));
+      return structuredClone(saved);
+    },
+    subscribe() {
+      return () => {};
     },
   };
 }

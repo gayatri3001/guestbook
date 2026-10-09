@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import type { VisitorCheck } from './auth/visitorCheck';
 import { Composer } from './components/Composer/Composer';
 import { GuestbookWall } from './components/GuestbookWall/GuestbookWall';
+import { userMessageFor } from './data/errors';
 import type { GuestbookRepository } from './data/guestbookRepository';
 import { useGuestbookEntries } from './data/useGuestbookEntries';
 import { assignRotation, createEntryFromDraft, type EntryDraft } from './domain/draft';
-import type { EntryId, UserId, WallPlacement } from './domain/guestbook';
+import type { EntryId, WallPlacement } from './domain/guestbook';
 import { useWallInteraction } from './interaction/useWallInteraction';
 import { WALL_SIZE } from './wall/coordinates';
 import { nextZIndex } from './wall/placement';
@@ -19,17 +21,27 @@ const wait = (ms: number) =>
 
 interface AppProps {
   repository: GuestbookRepository;
-  /** The current visitor; a stand-in until auth exists. */
-  viewerId: UserId | null;
+  /** Invisible bot check for a visitor's first sign-in; null when switched off. */
+  visitorCheck: VisitorCheck | null;
 }
 
-export function App({ repository, viewerId }: AppProps) {
+export function App({ repository, visitorCheck }: AppProps) {
   const { state: entriesState, publishEntry } = useGuestbookEntries(repository);
   const interaction = useWallInteraction();
   const { mode } = interaction;
   // Remounting the composer is how its draft resets after a successful post.
   const [composerKey, setComposerKey] = useState(0);
   const [focusEntryId, setFocusEntryId] = useState<EntryId | null>(null);
+
+  // While someone composes, run the bot check in the background (first-time
+  // visitors only) so it's done long before they post.
+  const composing = mode.kind === 'composing';
+  useEffect(() => {
+    if (!composing || !visitorCheck) return;
+    void repository.hasVisitor().then((has) => {
+      if (!has) visitorCheck.warm();
+    });
+  }, [composing, repository, visitorCheck]);
 
   if (entriesState.status === 'error') {
     return <p role="alert">The guestbook couldn’t be loaded. Please try again later.</p>;
@@ -42,7 +54,8 @@ export function App({ repository, viewerId }: AppProps) {
     const entry = createEntryFromDraft(draft, {
       id,
       createdAt: new Date().toISOString(),
-      ownerId: viewerId,
+      // The server stamps the real owner when it's saved.
+      ownerId: null,
       // Starts mid-wall; placement moves it into view and under the pointer.
       placement: { x: WALL_SIZE.width / 2, y: WALL_SIZE.height / 2, rotation: assignRotation(id), zIndex: nextZIndex(entries) },
     });
@@ -61,17 +74,25 @@ export function App({ repository, viewerId }: AppProps) {
     const snapped = placement.x !== entry.placement.x || placement.y !== entry.placement.y;
     interaction.startSaving(placement);
 
-    // Let the note visibly slide into its snapped spot before it's stuck down.
-    wait(snapped ? SNAP_DURATION_MS : 0)
-      .then(() => publishEntry({ ...entry, placement }, photo))
-      .then(
-        (saved) => {
-          setFocusEntryId(saved.id);
-          setComposerKey((key) => key + 1);
-          interaction.saved();
-        },
-        () => interaction.savingFailed('Your note couldn’t be saved. Try sticking it again.'),
-      );
+    const save = async () => {
+      // Let the note visibly slide into its snapped spot before it's stuck down.
+      await wait(snapped ? SNAP_DURATION_MS : 0);
+      // First post from this browser: quietly sign in (after the bot check, if on).
+      if (!(await repository.hasVisitor())) {
+        await repository.ensureVisitor(visitorCheck ? await visitorCheck.takeToken() : undefined);
+      }
+      return publishEntry({ ...entry, placement }, photo);
+    };
+
+    save().then(
+      (saved) => {
+        setFocusEntryId(saved.id);
+        setComposerKey((key) => key + 1);
+        interaction.saved();
+      },
+      (error: unknown) =>
+        interaction.savingFailed(userMessageFor(error, 'Your note couldn’t be saved. Try sticking it again.')),
+    );
   };
 
   return (
