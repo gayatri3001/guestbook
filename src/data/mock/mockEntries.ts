@@ -33,6 +33,7 @@ export const MOCK_ENTRIES: GuestbookEntry[] = [
     attachment: 'washi-tape',
     createdAt: '2026-06-02T18:12:00Z',
     ownerId: 'user-maya',
+    hidden: false,
   },
   {
     id: 'e02',
@@ -46,6 +47,7 @@ export const MOCK_ENTRIES: GuestbookEntry[] = [
     attachment: 'pin',
     createdAt: '2026-06-03T09:40:00Z',
     ownerId: 'user-jonas',
+    hidden: false,
   },
   {
     id: 'e03',
@@ -59,6 +61,7 @@ export const MOCK_ENTRIES: GuestbookEntry[] = [
     attachment: 'washi-tape',
     createdAt: '2026-06-04T14:05:00Z',
     ownerId: 'user-ama',
+    hidden: false,
   },
   {
     id: 'e04',
@@ -70,6 +73,7 @@ export const MOCK_ENTRIES: GuestbookEntry[] = [
     attachment: 'double-sided-tape',
     createdAt: '2026-06-05T11:30:00Z',
     ownerId: 'user-leo',
+    hidden: false,
   },
   {
     id: 'e05',
@@ -83,6 +87,7 @@ export const MOCK_ENTRIES: GuestbookEntry[] = [
     attachment: 'pin',
     createdAt: '2026-06-06T16:20:00Z',
     ownerId: 'user-rin',
+    hidden: false,
   },
   {
     id: 'e06',
@@ -96,6 +101,7 @@ export const MOCK_ENTRIES: GuestbookEntry[] = [
     attachment: 'washi-tape',
     createdAt: '2026-06-07T19:02:00Z',
     ownerId: 'user-priya',
+    hidden: false,
   },
   {
     id: 'e07',
@@ -110,6 +116,7 @@ export const MOCK_ENTRIES: GuestbookEntry[] = [
     attachment: 'double-sided-tape',
     createdAt: '2026-06-08T10:15:00Z',
     ownerId: 'user-tomas',
+    hidden: false,
   },
   {
     id: 'e08',
@@ -121,6 +128,7 @@ export const MOCK_ENTRIES: GuestbookEntry[] = [
     attachment: 'pin',
     createdAt: '2026-06-09T13:48:00Z',
     ownerId: 'user-sofia',
+    hidden: false,
   },
   {
     id: 'e09',
@@ -134,6 +142,7 @@ export const MOCK_ENTRIES: GuestbookEntry[] = [
     attachment: 'washi-tape',
     createdAt: '2026-06-10T08:33:00Z',
     ownerId: 'user-ines',
+    hidden: false,
   },
   {
     id: 'e10',
@@ -147,6 +156,7 @@ export const MOCK_ENTRIES: GuestbookEntry[] = [
     attachment: 'pin',
     createdAt: '2026-06-11T20:10:00Z',
     ownerId: 'user-cass',
+    hidden: false,
   },
   {
     id: 'e11',
@@ -158,6 +168,7 @@ export const MOCK_ENTRIES: GuestbookEntry[] = [
     attachment: 'double-sided-tape',
     createdAt: '2026-06-12T12:00:00Z',
     ownerId: 'user-noor',
+    hidden: false,
   },
   {
     id: 'e12',
@@ -171,6 +182,7 @@ export const MOCK_ENTRIES: GuestbookEntry[] = [
     attachment: 'double-sided-tape',
     createdAt: '2026-06-13T15:25:00Z',
     ownerId: null,
+    hidden: false,
   },
   {
     id: 'e13',
@@ -182,6 +194,7 @@ export const MOCK_ENTRIES: GuestbookEntry[] = [
     attachment: 'washi-tape',
     createdAt: '2026-06-14T09:05:00Z',
     ownerId: 'user-kai',
+    hidden: false,
   },
   {
     id: 'e14',
@@ -195,6 +208,7 @@ export const MOCK_ENTRIES: GuestbookEntry[] = [
     attachment: 'pin',
     createdAt: '2026-06-15T17:44:00Z',
     ownerId: MOCK_VIEWER_ID,
+    hidden: false,
   },
   {
     id: 'e15',
@@ -208,6 +222,7 @@ export const MOCK_ENTRIES: GuestbookEntry[] = [
     attachment: 'washi-tape',
     createdAt: '2026-06-16T10:50:00Z',
     ownerId: 'user-ben',
+    hidden: false,
   },
   {
     id: 'e16',
@@ -219,6 +234,7 @@ export const MOCK_ENTRIES: GuestbookEntry[] = [
     attachment: 'pin',
     createdAt: '2026-06-17T19:30:00Z',
     ownerId: 'user-elif',
+    hidden: false,
   },
   {
     id: 'e17',
@@ -232,5 +248,6 @@ export const MOCK_ENTRIES: GuestbookEntry[] = [
     attachment: 'washi-tape',
     createdAt: '2026-06-18T21:15:00Z',
     ownerId: 'user-dee',
+    hidden: false,
   },
 ];

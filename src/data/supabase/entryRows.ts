@@ -64,6 +64,7 @@ export function rowToEntry(row: EntryRow, photoUrl: (path: string) => string): G
     attachment: row.attachment,
     createdAt: row.created_at,
     ownerId: row.owner_id,
+    hidden: row.hidden,
   };
 
   if (row.type === 'sticky') {

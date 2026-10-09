@@ -1,0 +1,141 @@
+/* Sign-in card at /admin */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgb(17 16 17 / 0.32);
+  backdrop-filter: blur(2px);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: min(380px, 100%);
+  padding: 28px;
+  border-radius: 20px;
+  background: var(--dialog-bg);
+  box-shadow:
+    0 2px 6px rgb(var(--shadow-color) / 0.08),
+    0 24px 60px rgb(var(--shadow-color) / 0.18);
+  font-family: var(--font-body);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: 32px;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.label {
+  font-family: var(--font-heading);
+  font-size: 18px;
+}
+
+.input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-field);
+  background: #fff;
+  color: var(--text);
+  font: inherit;
+  font-size: 16px;
+  outline: none;
+}
+
+.input:focus-visible {
+  border-color: var(--focus-ring);
+  box-shadow: 0 0 0 3px rgb(47 95 208 / 0.18);
+}
+
+.submit {
+  width: 100%;
+  margin-top: 6px;
+}
+
+.text {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.error {
+  margin: 0;
+  font-size: 14px;
+  color: #b3261e;
+}
+
+.link {
+  align-self: flex-start;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 14px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* Admin bar across the top of the wall */
+.bar {
+  position: fixed;
+  top: 12px;
+  left: 50%;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  max-width: calc(100% - 24px);
+  padding: 6px 8px 6px 6px;
+  transform: translateX(-50%);
+  border-radius: 36px;
+  background: rgb(255 255 255 / 0.94);
+  box-shadow: 0 2px 12px rgb(var(--shadow-color) / 0.12);
+  backdrop-filter: blur(8px);
+  font-family: var(--font-body);
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.badge {
+  padding: 5px 12px;
+  border-radius: 36px;
+  background: var(--text);
+  color: #fff;
+}
+
+.barText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-muted);
+}
+
+.barLink {
+  padding: 5px 8px;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+@media (max-width: 560px) {
+  .barText {
+    display: none;
+  }
+}

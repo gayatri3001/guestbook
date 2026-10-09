@@ -7,6 +7,8 @@ import { moveWithinWall, nearestFreePlacement, type WallObstacles } from '../wal
 interface PlacementDragOptions {
   /** The entry in hand, or null when not placing. */
   entry: GuestbookEntry | null;
+  /** Pick a free starting spot in view (new notes); off when moving an existing note. */
+  chooseStart: boolean;
   /** Entries already on the wall and the intro's shapes (for choosing a free starting spot). */
   others: readonly GuestbookEntry[];
   obstacles: WallObstacles;
@@ -44,6 +46,7 @@ interface Drag {
  */
 export function usePlacementDrag({
   entry,
+  chooseStart,
   others,
   obstacles,
   layout,
@@ -62,6 +65,8 @@ export function usePlacementDrag({
   obstaclesRef.current = obstacles;
   const layoutRef = useRef(layout);
   layoutRef.current = layout;
+  const chooseStartRef = useRef(chooseStart);
+  chooseStartRef.current = chooseStart;
   const dragRef = useRef<Drag | null>(null);
   const lastPointer = useRef<{ x: number; y: number } | null>(null);
   const callbacks = useRef({ onMove, onHoldingChange, onRelease, onCancel });
@@ -110,6 +115,7 @@ export function usePlacementDrag({
     const current = entryRef.current;
     if (!entryId || !viewport || !current || startedFor.current === entryId) return;
     startedFor.current = entryId;
+    if (!chooseStartRef.current) return;
     const rect = viewport.getBoundingClientRect();
     const centre = toWall(rect.left + rect.width / 2, rect.top + rect.height / 2);
     // Look only on screen, keeping the bottom clear of the toast.

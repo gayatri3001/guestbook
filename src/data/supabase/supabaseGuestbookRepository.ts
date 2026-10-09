@@ -1,6 +1,6 @@
 import { createClient, type PostgrestError, type SupabaseClient } from '@supabase/supabase-js';
 import { GuestbookError } from '../errors';
-import type { GuestbookRepository } from '../guestbookRepository';
+import type { AdminStatus, GuestbookRepository } from '../guestbookRepository';
 import { ENTRY_COLUMNS, entryToInsert, rowToEntry, type EntryRow } from './entryRows';
 
 const PHOTO_BUCKET = 'photos';
@@ -21,14 +21,33 @@ export function createSupabaseGuestbookRepository(config: SupabaseConfig): Guest
 
   const currentUserId = async () => (await supabase.auth.getSession()).data.session?.user.id ?? null;
 
+  const adminStatus = async (): Promise<AdminStatus> => {
+    const user = (await supabase.auth.getSession()).data.session?.user;
+    // A visitor's anonymous account doesn't count as being signed in as admin.
+    if (!user || user.is_anonymous) return 'signed-out';
+    const { data } = await supabase.from('admins').select('user_id').eq('user_id', user.id).maybeSingle();
+    return data ? 'admin' : 'not-admin';
+  };
+
+  const updateEntry = async (id: string, changes: Partial<Pick<EntryRow, 'x' | 'y' | 'rotation' | 'hidden'>>) => {
+    const { data, error } = await supabase
+      .from('entries')
+      .update(changes)
+      .eq('id', id)
+      .select(ENTRY_COLUMNS)
+      .maybeSingle<EntryRow>();
+    if (error) throw toGuestbookError(error, 'That change couldn’t be saved. Please try again.');
+    if (!data) throw new GuestbookError('Only the admin can do that — try signing in again.');
+    return rowToEntry(data, photoUrl);
+  };
+
   return {
-    async listEntries() {
-      const { data, error } = await supabase
-        .from('entries')
-        .select(ENTRY_COLUMNS)
-        .eq('hidden', false)
-        .order('z_index', { ascending: true })
-        .returns<EntryRow[]>();
+    async listEntries(query) {
+      let request = supabase.from('entries').select(ENTRY_COLUMNS);
+      // Hidden notes only ever reach the admin (the database enforces that);
+      // everyone else, and the admin on the public page, asks for visible ones.
+      if (!query?.includeHidden) request = request.eq('hidden', false);
+      const { data, error } = await request.order('z_index', { ascending: true }).returns<EntryRow[]>();
       if (error) throw toGuestbookError(error, 'The guestbook couldn’t be loaded.');
       return data.map((row) => rowToEntry(row, photoUrl));
     },
@@ -85,21 +104,66 @@ export function createSupabaseGuestbookRepository(config: SupabaseConfig): Guest
       return rowToEntry(data, photoUrl);
     },
 
-    subscribe(listener) {
+    subscribe(listener, query) {
+      const includeHidden = query?.includeHidden ?? false;
       const channel = supabase
-        .channel('entries')
+        .channel(`wall-${crypto.randomUUID()}`)
         .on<EntryRow>('postgres_changes', { event: '*', schema: 'public', table: 'entries' }, (payload) => {
           if (payload.eventType === 'DELETE') {
             if (payload.old.id) listener({ type: 'remove', id: payload.old.id });
             return;
           }
           const row = payload.new;
-          listener(row.hidden ? { type: 'remove', id: row.id } : { type: 'upsert', entry: rowToEntry(row, photoUrl) });
+          listener(
+            row.hidden && !includeHidden
+              ? { type: 'remove', id: row.id }
+              : { type: 'upsert', entry: rowToEntry(row, photoUrl) },
+          );
         })
+        // Visitors can't read a note once it's hidden, so they hear about it here.
+        .on<{ entry_id: string }>(
+          'postgres_changes',
+          { event: 'INSERT', schema: 'public', table: 'hidden_entries' },
+          (payload) => {
+            if (!includeHidden) listener({ type: 'remove', id: payload.new.entry_id });
+          },
+        )
         .subscribe();
       return () => {
         void supabase.removeChannel(channel);
       };
+    },
+
+    getAdminStatus: adminStatus,
+
+    async sendAdminCode(email) {
+      const { error } = await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: false } });
+      if (error) {
+        throw new GuestbookError(
+          error.status === 429
+            ? 'Too many codes requested — please wait a few minutes.'
+            : 'We couldn’t send a code to that email.',
+          { cause: error },
+        );
+      }
+    },
+
+    async verifyAdminCode(email, code) {
+      const { error } = await supabase.auth.verifyOtp({ email, token: code, type: 'email' });
+      if (error) throw new GuestbookError('That code didn’t work — check it, or request a new one.', { cause: error });
+      return adminStatus();
+    },
+
+    async signOutAdmin() {
+      await supabase.auth.signOut({ scope: 'local' });
+    },
+
+    setHidden(id, hidden) {
+      return updateEntry(id, { hidden });
+    },
+
+    moveEntry(id, placement) {
+      return updateEntry(id, { x: placement.x, y: placement.y, rotation: placement.rotation });
     },
   };
 }

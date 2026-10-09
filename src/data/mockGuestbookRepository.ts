@@ -1,18 +1,28 @@
 import type { GuestbookEntry } from '../domain/guestbook';
-import type { GuestbookRepository } from './guestbookRepository';
+import { GuestbookError } from './errors';
+import type { AdminStatus, GuestbookRepository } from './guestbookRepository';
 import { MOCK_ENTRIES, MOCK_VIEWER_ID } from './mock/mockEntries';
 
 /**
  * In-memory repository backed by deterministic mock data, for working
- * offline. New entries and photos last until the page reloads.
+ * offline. Changes last until the page reloads; any admin code works.
  */
 export function createMockGuestbookRepository(): GuestbookRepository {
   const entries: GuestbookEntry[] = structuredClone(MOCK_ENTRIES);
+  let adminStatus: AdminStatus = 'signed-out';
+
+  const update = (id: string, change: (entry: GuestbookEntry) => GuestbookEntry) => {
+    const index = entries.findIndex((entry) => entry.id === id);
+    if (index === -1) throw new GuestbookError('That note no longer exists.');
+    entries[index] = change(entries[index]!);
+    return structuredClone(entries[index]!);
+  };
+  const topZ = () => Math.max(0, ...entries.map((entry) => entry.placement.zIndex)) + 1;
 
   return {
-    async listEntries() {
+    async listEntries(query) {
       // Hand out copies so callers can't mutate the store.
-      return structuredClone(entries);
+      return structuredClone(entries.filter((entry) => query?.includeHidden || !entry.hidden));
     },
     async hasVisitor() {
       return true;
@@ -30,6 +40,23 @@ export function createMockGuestbookRepository(): GuestbookRepository {
     },
     subscribe() {
       return () => {};
+    },
+    async getAdminStatus() {
+      return adminStatus;
+    },
+    async sendAdminCode() {},
+    async verifyAdminCode() {
+      adminStatus = 'admin';
+      return adminStatus;
+    },
+    async signOutAdmin() {
+      adminStatus = 'signed-out';
+    },
+    async setHidden(id, hidden) {
+      return update(id, (entry) => ({ ...entry, hidden }));
+    },
+    async moveEntry(id, placement) {
+      return update(id, (entry) => ({ ...entry, placement: { ...placement, zIndex: topZ() } }));
     },
   };
 }

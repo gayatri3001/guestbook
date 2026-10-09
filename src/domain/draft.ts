@@ -112,6 +112,7 @@ export function createEntryFromDraft(draft: EntryDraft, meta: EntryMeta): Guestb
     name: draft.name.trim() || null,
     message: draft.message.trim() || null,
     attachment: assignAttachment(meta.id),
+    hidden: false,
   };
 
   if (draft.surface.type === 'sticky') {

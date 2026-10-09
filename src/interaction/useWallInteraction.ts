@@ -7,13 +7,19 @@ import type { EntryId, GuestbookEntry, WallPlacement } from '../domain/guestbook
  *   browsing ──Add yours──▶ composing ──Done──▶ placing ──release──▶ saving ──▶ browsing
  *                              ▲                  │
  *                              └──── Esc / Back ──┘
+ *
+ * The admin moving a note reuses placing/saving with purpose 'move'
+ * (cancelling goes straight back to browsing).
  */
+export type PlacementPurpose = 'new' | 'move';
+
 export type WallMode =
   | { kind: 'browsing' }
   | { kind: 'composing' }
   | {
       kind: 'placing';
-      /** The new entry, held in hand; its placement follows the pointer. */
+      purpose: PlacementPurpose;
+      /** The entry held in hand; its placement follows the pointer. */
       entry: GuestbookEntry;
       /** Prepared photo to upload once placed. */
       photo: Blob | null;
@@ -21,7 +27,7 @@ export type WallMode =
       holding: boolean;
       error: string | null;
     }
-  | { kind: 'saving'; entry: GuestbookEntry; photo: Blob | null };
+  | { kind: 'saving'; purpose: PlacementPurpose; entry: GuestbookEntry; photo: Blob | null };
 
 interface State {
   mode: WallMode;
@@ -35,6 +41,7 @@ type Action =
   | { type: 'open-composer' }
   | { type: 'close-composer' }
   | { type: 'start-placing'; entry: GuestbookEntry; photo: Blob | null }
+  | { type: 'start-moving'; entry: GuestbookEntry }
   | { type: 'move-pending'; placement: WallPlacement }
   | { type: 'set-holding'; holding: boolean }
   | { type: 'back-to-composer' }
@@ -58,7 +65,13 @@ export function wallInteractionReducer(state: State, action: Action): State {
     case 'start-placing':
       return {
         ...state,
-        mode: { kind: 'placing', entry: action.entry, photo: action.photo, holding: false, error: null },
+        mode: { kind: 'placing', purpose: 'new', entry: action.entry, photo: action.photo, holding: false, error: null },
+      };
+    case 'start-moving':
+      if (mode.kind !== 'browsing') return state;
+      return {
+        mode: { kind: 'placing', purpose: 'move', entry: action.entry, photo: null, holding: false, error: null },
+        selectedEntryId: null,
       };
     case 'move-pending':
       if (mode.kind !== 'placing') return state;
@@ -68,16 +81,33 @@ export function wallInteractionReducer(state: State, action: Action): State {
       if (mode.kind !== 'placing' || mode.holding === action.holding) return state;
       return { ...state, mode: { ...mode, holding: action.holding } };
     case 'back-to-composer':
-      return mode.kind === 'placing' ? { ...state, mode: { kind: 'composing' } } : state;
+      if (mode.kind !== 'placing') return state;
+      // Cancelling a move just drops back to the wall, where the note never left.
+      return { ...state, mode: mode.purpose === 'move' ? { kind: 'browsing' } : { kind: 'composing' } };
     case 'start-saving':
       if (mode.kind !== 'placing') return state;
       return {
         ...state,
-        mode: { kind: 'saving', entry: { ...mode.entry, placement: action.placement }, photo: mode.photo },
+        mode: {
+          kind: 'saving',
+          purpose: mode.purpose,
+          entry: { ...mode.entry, placement: action.placement },
+          photo: mode.photo,
+        },
       };
     case 'saving-failed':
       if (mode.kind !== 'saving') return state;
-      return { ...state, mode: { kind: 'placing', entry: mode.entry, photo: mode.photo, holding: false, error: action.error } };
+      return {
+        ...state,
+        mode: {
+          kind: 'placing',
+          purpose: mode.purpose,
+          entry: mode.entry,
+          photo: mode.photo,
+          holding: false,
+          error: action.error,
+        },
+      };
     case 'placement-failed':
       if (mode.kind !== 'placing') return state;
       return { ...state, mode: { ...mode, holding: false, error: action.error } };
@@ -98,6 +128,8 @@ export function useWallInteraction() {
       openComposer: () => dispatch({ type: 'open-composer' }),
       closeComposer: () => dispatch({ type: 'close-composer' }),
       startPlacing: (entry: GuestbookEntry, photo: Blob | null) => dispatch({ type: 'start-placing', entry, photo }),
+      /** Admin: pick up an existing note to move it. */
+      startMoving: (entry: GuestbookEntry) => dispatch({ type: 'start-moving', entry }),
       movePending: (placement: WallPlacement) => dispatch({ type: 'move-pending', placement }),
       setHolding: (holding: boolean) => dispatch({ type: 'set-holding', holding }),
       backToComposer: () => dispatch({ type: 'back-to-composer' }),

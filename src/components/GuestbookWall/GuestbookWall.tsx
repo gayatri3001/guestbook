@@ -5,11 +5,11 @@ import type { WallInteraction } from '../../interaction/useWallInteraction';
 import { WALL_SIZE } from '../../wall/coordinates';
 import { getEntryFootprint, INTRO_VERTICAL_ANCHOR, sortByReadingOrder } from '../../wall/geometry';
 import { entryInView, viewRectToWall, type WallLayout } from '../../wall/layout';
-import { fitsAt, nearestFreePlacement, NO_OBSTACLES, type WallObstacles } from '../../wall/placement';
+import { fitsAt, moveWithinWall, nearestFreePlacement, NO_OBSTACLES, type WallObstacles } from '../../wall/placement';
 import { useWallViewport } from '../../wall/useWallViewport';
 import { PendingEntry } from '../PendingEntry/PendingEntry';
 import { PlacementBanner } from '../PlacementBanner/PlacementBanner';
-import { WallEntry } from '../WallEntry/WallEntry';
+import { WallEntry, type AdminEntryActions } from '../WallEntry/WallEntry';
 import { WallIntro } from '../WallIntro/WallIntro';
 import styles from './GuestbookWall.module.css';
 
@@ -24,6 +24,8 @@ interface GuestbookWallProps {
   onPlace: (placement: WallPlacement | null) => void;
   /** Entry to focus when it appears — the visitor's freshly placed note. */
   focusEntryId: EntryId | null;
+  /** Admin mode: move / hide controls on every note. */
+  admin?: AdminEntryActions | null | undefined;
 }
 
 /** Where the intro's centre sits: 40% down the screen, staying within the first strip/wall. */
@@ -37,17 +39,25 @@ const toView = (layout: WallLayout, entry: GuestbookEntry) =>
  * are stored in wall units; the layout maps them onto the surface — the
  * whole wall on wide screens, folded into stacked strips on narrow ones.
  */
-export function GuestbookWall({ entries, interaction, onAddMark, onPlace, focusEntryId }: GuestbookWallProps) {
+export function GuestbookWall({ entries, interaction, onAddMark, onPlace, focusEntryId, admin = null }: GuestbookWallProps) {
   const viewportRef = useRef<HTMLDivElement>(null);
   const surfaceRef = useRef<HTMLDivElement>(null);
   const viewport = useWallViewport(viewportRef);
   const layout = viewport?.layout ?? null;
   const { mode, selectedEntryId, toggleEntry, clearSelection } = interaction;
 
+  const pending = mode.kind === 'placing' || mode.kind === 'saving' ? mode.entry : null;
+  const purpose = mode.kind === 'placing' || mode.kind === 'saving' ? mode.purpose : 'new';
+  // A note being moved is drawn in hand, not in its old spot.
+  const movingId = pending && purpose === 'move' ? pending.id : null;
+
   // Entries as drawn on this screen, in reading order.
   const ordered = useMemo(
-    () => (layout ? sortByReadingOrder(entries.map((entry) => toView(layout, entry))) : []),
-    [entries, layout],
+    () =>
+      layout
+        ? sortByReadingOrder(entries.filter((entry) => entry.id !== movingId).map((entry) => toView(layout, entry)))
+        : [],
+    [entries, layout, movingId],
   );
 
   // Only the first batch of entries gets the staggered entrance.
@@ -69,16 +79,23 @@ export function GuestbookWall({ entries, interaction, onAddMark, onPlace, focusE
     [introInView, layout],
   );
 
-  const pending = mode.kind === 'placing' || mode.kind === 'saving' ? mode.entry : null;
   // Where it is now breaks a spacing rule: on release it will snap to the nearest free spot.
-  const pendingFits = pending ? fitsAt(pending, entries, obstacles) : true;
+  // (The admin moving a note isn't bound by the spacing rules.)
+  const pendingFits = pending && purpose === 'new' ? fitsAt(pending, entries, obstacles) : true;
 
   const place = () => {
-    if (mode.kind === 'placing') onPlace(nearestFreePlacement(mode.entry, entries, obstacles));
+    if (mode.kind !== 'placing') return;
+    onPlace(
+      mode.purpose === 'move'
+        ? moveWithinWall(mode.entry, mode.entry.placement)
+        : nearestFreePlacement(mode.entry, entries, obstacles),
+    );
   };
 
   const { onNotePointerDown } = usePlacementDrag({
     entry: mode.kind === 'placing' ? mode.entry : null,
+    // A moved note starts where it already is; a new one starts in view.
+    chooseStart: purpose === 'new',
     others: entries,
     obstacles,
     layout,
@@ -137,6 +154,7 @@ export function GuestbookWall({ entries, interaction, onAddMark, onPlace, focusE
                     onToggle={toggleEntry}
                     enterIndex={initialIds.current?.has(entry.id) ? index : 0}
                     focusOnMount={entry.id === focusEntryId}
+                    admin={mode.kind === 'browsing' ? admin : null}
                   />
                 ))}
               </ol>
@@ -160,6 +178,7 @@ export function GuestbookWall({ entries, interaction, onAddMark, onPlace, focusE
 
       {pending && (
         <PlacementBanner
+          purpose={purpose}
           willSnap={!pendingFits}
           saving={mode.kind === 'saving'}
           error={mode.kind === 'placing' ? mode.error : null}

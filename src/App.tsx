@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { VisitorCheck } from './auth/visitorCheck';
+import { AdminBar } from './components/Admin/AdminBar';
+import { AdminSignIn } from './components/Admin/AdminSignIn';
 import { Composer } from './components/Composer/Composer';
 import { GuestbookWall } from './components/GuestbookWall/GuestbookWall';
 import { userMessageFor } from './data/errors';
-import type { GuestbookRepository } from './data/guestbookRepository';
+import type { AdminStatus, GuestbookRepository } from './data/guestbookRepository';
 import { useGuestbookEntries } from './data/useGuestbookEntries';
 import { assignRotation, createEntryFromDraft, type EntryDraft } from './domain/draft';
 import type { EntryId, WallPlacement } from './domain/guestbook';
@@ -13,6 +15,9 @@ import { nextZIndex } from './wall/placement';
 
 /** Matches `--motion-snap`; skipped when the visitor prefers reduced motion. */
 const SNAP_DURATION_MS = 280;
+
+/** The private admin page; there's no link to it anywhere on the wall. */
+const IS_ADMIN_ROUTE = window.location.pathname.replace(/\/+$/, '') === '/admin';
 
 const wait = (ms: number) =>
   new Promise<void>((resolve) =>
@@ -26,12 +31,55 @@ interface AppProps {
 }
 
 export function App({ repository, visitorCheck }: AppProps) {
-  const { state: entriesState, publishEntry } = useGuestbookEntries(repository);
+  const [adminStatus, setAdminStatus] = useState<AdminStatus | 'checking'>(IS_ADMIN_ROUTE ? 'checking' : 'signed-out');
+  const isAdmin = IS_ADMIN_ROUTE && adminStatus === 'admin';
+  const { state: entriesState, publishEntry, setHidden, moveEntry } = useGuestbookEntries(repository, isAdmin);
   const interaction = useWallInteraction();
   const { mode } = interaction;
   // Remounting the composer is how its draft resets after a successful post.
   const [composerKey, setComposerKey] = useState(0);
   const [focusEntryId, setFocusEntryId] = useState<EntryId | null>(null);
+
+  const [adminBusyId, setAdminBusyId] = useState<EntryId | null>(null);
+  const [adminMessage, setAdminMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (IS_ADMIN_ROUTE) void repository.getAdminStatus().then(setAdminStatus);
+  }, [repository]);
+
+  const entries = entriesState.status === 'ready' ? entriesState.entries : [];
+
+  const flashAdminMessage = useCallback((message: string) => {
+    setAdminMessage(message);
+    window.setTimeout(() => setAdminMessage(null), 4000);
+  }, []);
+
+  const adminActions = useMemo(
+    () =>
+      isAdmin
+        ? {
+            busyId: adminBusyId,
+            onMove: (id: EntryId) => {
+              const entry = entries.find((candidate) => candidate.id === id);
+              if (entry) interaction.startMoving(entry);
+            },
+            onToggleHidden: (id: EntryId) => {
+              const entry = entries.find((candidate) => candidate.id === id);
+              if (!entry) return;
+              setAdminBusyId(id);
+              setHidden(id, !entry.hidden)
+                .then((saved) => flashAdminMessage(saved.hidden ? 'Hidden from visitors.' : 'Visible to visitors again.'))
+                .catch((error: unknown) => flashAdminMessage(userMessageFor(error, 'That didn’t save. Please try again.')))
+                .finally(() => setAdminBusyId(null));
+            },
+          }
+        : null,
+    [isAdmin, adminBusyId, entries, interaction, setHidden, flashAdminMessage],
+  );
+
+  const signOutAdmin = () => {
+    void repository.signOutAdmin().then(() => setAdminStatus('signed-out'));
+  };
 
   // While someone composes, run the bot check in the background (first-time
   // visitors only) so it's done long before they post.
@@ -46,7 +94,6 @@ export function App({ repository, visitorCheck }: AppProps) {
   if (entriesState.status === 'error') {
     return <p role="alert">The guestbook couldn’t be loaded. Please try again later.</p>;
   }
-  const entries = entriesState.status === 'ready' ? entriesState.entries : [];
 
   // Done in the composer: the note is created and handed to the visitor to place.
   const handleComposed = (draft: EntryDraft) => {
@@ -67,6 +114,21 @@ export function App({ repository, visitorCheck }: AppProps) {
   const handlePlace = (placement: WallPlacement | null) => {
     if (mode.kind !== 'placing') return;
     const { entry, photo } = mode;
+
+    // Admin moving an existing note: save its new spot (it comes to the top).
+    if (mode.purpose === 'move') {
+      if (!placement) return;
+      interaction.startSaving(placement);
+      moveEntry(entry.id, placement).then(
+        (saved) => {
+          setFocusEntryId(saved.id);
+          interaction.saved();
+        },
+        (error: unknown) => interaction.savingFailed(userMessageFor(error, 'The note couldn’t be moved. Please try again.')),
+      );
+      return;
+    }
+
     if (!placement) {
       interaction.placementFailed('No free space around here — try another part of the wall.');
       return;
@@ -103,7 +165,18 @@ export function App({ repository, visitorCheck }: AppProps) {
         onAddMark={interaction.openComposer}
         onPlace={handlePlace}
         focusEntryId={focusEntryId}
+        admin={adminActions}
       />
+      {isAdmin && (
+        <AdminBar
+          hiddenCount={entries.filter((entry) => entry.hidden).length}
+          message={adminMessage}
+          onSignOut={signOutAdmin}
+        />
+      )}
+      {IS_ADMIN_ROUTE && (adminStatus === 'signed-out' || adminStatus === 'not-admin') && (
+        <AdminSignIn repository={repository} notAdmin={adminStatus === 'not-admin'} onStatus={setAdminStatus} />
+      )}
       <Composer
         key={composerKey}
         open={mode.kind === 'composing'}

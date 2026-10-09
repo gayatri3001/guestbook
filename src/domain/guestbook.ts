@@ -79,6 +79,8 @@ interface BaseEntry {
   createdAt: string;
   /** Owning user; null for legacy / anonymous entries. Compared against the viewer to derive `isOwn`. */
   ownerId: UserId | null;
+  /** Taken down by the admin. Only the admin ever receives hidden entries. */
+  hidden: boolean;
 }
 
 export interface StickyNoteEntry extends BaseEntry {

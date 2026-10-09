@@ -85,6 +85,97 @@
   transition-duration: var(--motion-fast);
 }
 
+/* Admin only: hidden notes stay visible to the admin, faded and labelled. */
+.slot[data-hidden] .body {
+  opacity: 0.35;
+  filter: grayscale(0.6);
+}
+
+.hiddenBadge {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 3;
+  padding: 4px 10px;
+  transform: translate(-50%, -50%);
+  border-radius: 36px;
+  background: var(--text);
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 13px;
+  pointer-events: none;
+}
+
+/* Admin controls: a small pill above the note, shown on hover/focus (always on touch). */
+.adminControls {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  z-index: 4;
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  transform: translateX(-50%);
+  border-radius: 36px;
+  background: #fff;
+  box-shadow: 0 2px 10px rgb(var(--shadow-color) / 0.16);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--motion-fast) linear;
+}
+
+.slot:hover .adminControls,
+.slot:focus-within .adminControls {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+@media (hover: none) {
+  .adminControls {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+.adminButton {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 36px;
+  background: transparent;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.adminButton:hover {
+  background: var(--doodle-pad);
+}
+
+.adminButton:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.adminButton:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+.adminButton svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 /* Extra stickies for a long note, tucked behind the edge so no writing is covered (z-index set inline). */
 .continuation {
   position: absolute;
