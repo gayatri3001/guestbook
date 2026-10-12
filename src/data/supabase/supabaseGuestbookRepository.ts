@@ -142,7 +142,9 @@ export function createSupabaseGuestbookRepository(config: SupabaseConfig): Guest
         throw new GuestbookError(
           error.status === 429
             ? 'Too many codes requested — please wait a few minutes.'
-            : 'We couldn’t send a code to that email.',
+            : error.code === 'otp_disabled'
+              ? 'There’s no admin account for that email yet.'
+              : 'We couldn’t send a code to that email.',
           { cause: error },
         );
       }
