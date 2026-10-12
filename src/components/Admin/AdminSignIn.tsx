@@ -11,18 +11,22 @@ interface AdminSignInProps {
   onStatus: (status: AdminStatus) => void;
 }
 
+/** An emailed link that has expired or been used lands back here with the reason in the URL. */
+const linkError = new URLSearchParams(window.location.hash.slice(1)).has('error')
+  ? 'That sign-in link has expired or was already used. Ask for a new one.'
+  : null;
+
 /**
- * The private sign-in at /admin: email → 6-digit code → admin mode.
- * Codes only go to existing accounts, and admin powers come from the
+ * The private sign-in at /admin: email → emailed link → admin mode.
+ * Links only go to existing accounts, and admin powers come from the
  * database's admins list, so finding this page grants nothing.
  */
 export function AdminSignIn({ repository, notAdmin, onStatus }: AdminSignInProps) {
-  const ids = { title: useId(), email: useId(), code: useId() };
-  const [step, setStep] = useState<'email' | 'code'>('email');
+  const ids = { title: useId(), email: useId() };
+  const [step, setStep] = useState<'email' | 'sent'>('email');
   const [email, setEmail] = useState('');
-  const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(linkError);
 
   const run = async (task: () => Promise<void>) => {
     setBusy(true);
@@ -36,17 +40,15 @@ export function AdminSignIn({ repository, notAdmin, onStatus }: AdminSignInProps
     }
   };
 
-  const sendCode = (event: FormEvent) => {
+  const sendLink = (event: FormEvent) => {
     event.preventDefault();
     void run(async () => {
-      await repository.sendAdminCode(email.trim());
-      setStep('code');
+      await repository.sendAdminLink(email.trim());
+      setStep('sent');
+      // Already signed in (the offline mock wall does this straight away).
+      const status = await repository.getAdminStatus();
+      if (status !== 'signed-out') onStatus(status);
     });
-  };
-
-  const verify = (event: FormEvent) => {
-    event.preventDefault();
-    void run(async () => onStatus(await repository.verifyAdminCode(email.trim(), code.trim())));
   };
 
   const signOut = () =>
@@ -70,7 +72,7 @@ export function AdminSignIn({ repository, notAdmin, onStatus }: AdminSignInProps
             </Button>
           </>
         ) : step === 'email' ? (
-          <form className={styles.form} onSubmit={sendCode}>
+          <form className={styles.form} onSubmit={sendLink}>
             <label htmlFor={ids.email} className={styles.label}>
               Email
             </label>
@@ -84,33 +86,18 @@ export function AdminSignIn({ repository, notAdmin, onStatus }: AdminSignInProps
               onChange={(event) => setEmail(event.target.value)}
             />
             <Button type="submit" className={styles.submit} disabled={busy || !email.trim()}>
-              {busy ? 'Sending…' : 'Email me a code'}
+              {busy ? 'Sending…' : 'Email me a sign-in link'}
             </Button>
           </form>
         ) : (
-          <form className={styles.form} onSubmit={verify}>
-            <p className={styles.text}>We sent a 6-digit code to {email.trim()}.</p>
-            <label htmlFor={ids.code} className={styles.label}>
-              Code
-            </label>
-            <input
-              id={ids.code}
-              className={styles.input}
-              inputMode="numeric"
-              autoComplete="one-time-code"
-              pattern="[0-9]*"
-              maxLength={10}
-              required
-              value={code}
-              onChange={(event) => setCode(event.target.value)}
-            />
-            <Button type="submit" className={styles.submit} disabled={busy || code.trim().length < 6}>
-              {busy ? 'Checking…' : 'Sign in'}
-            </Button>
+          <div className={styles.form}>
+            <p className={styles.text}>
+              We sent a sign-in link to {email.trim()}. Open it on this device and you’ll land back here, signed in.
+            </p>
             <button type="button" className={styles.link} onClick={() => setStep('email')}>
               Use a different email
             </button>
-          </form>
+          </div>
         )}
 
         {error && (

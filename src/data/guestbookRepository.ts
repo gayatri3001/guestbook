@@ -37,9 +37,8 @@ export interface GuestbookRepository {
   // --- Admin ----------------------------------------------------------------
 
   getAdminStatus(): Promise<AdminStatus>;
-  /** Email a 6-digit sign-in code (only to an existing account). */
-  sendAdminCode(email: string): Promise<void>;
-  verifyAdminCode(email: string, code: string): Promise<AdminStatus>;
+  /** Email a sign-in link that opens /admin signed in (only to an existing account). */
+  sendAdminLink(email: string): Promise<void>;
   signOutAdmin(): Promise<void>;
   /** Admin only: take a note down, or put it back. */
   setHidden(id: EntryId, hidden: boolean): Promise<GuestbookEntry>;

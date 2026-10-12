@@ -44,10 +44,9 @@ export function createMockGuestbookRepository(): GuestbookRepository {
     async getAdminStatus() {
       return adminStatus;
     },
-    async sendAdminCode() {},
-    async verifyAdminCode() {
+    // No email offline: asking for a link signs you straight in.
+    async sendAdminLink() {
       adminStatus = 'admin';
-      return adminStatus;
     },
     async signOutAdmin() {
       adminStatus = 'signed-out';

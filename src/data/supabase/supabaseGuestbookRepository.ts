@@ -136,24 +136,22 @@ export function createSupabaseGuestbookRepository(config: SupabaseConfig): Guest
 
     getAdminStatus: adminStatus,
 
-    async sendAdminCode(email) {
-      const { error } = await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: false } });
+    async sendAdminLink(email) {
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        // The emailed link opens the admin page, already signed in.
+        options: { shouldCreateUser: false, emailRedirectTo: `${window.location.origin}/admin` },
+      });
       if (error) {
         throw new GuestbookError(
           error.status === 429
-            ? 'Too many codes requested — please wait a few minutes.'
+            ? 'Too many emails requested — please wait a few minutes.'
             : error.code === 'otp_disabled'
               ? 'There’s no admin account for that email yet.'
-              : 'We couldn’t send a code to that email.',
+              : 'We couldn’t send an email to that address.',
           { cause: error },
         );
       }
-    },
-
-    async verifyAdminCode(email, code) {
-      const { error } = await supabase.auth.verifyOtp({ email, token: code, type: 'email' });
-      if (error) throw new GuestbookError('That code didn’t work — check it, or request a new one.', { cause: error });
-      return adminStatus();
     },
 
     async signOutAdmin() {
